@@ -24,8 +24,7 @@
         "backgroundColor": "#0f172a"
       },
       "permissions": [
-        "READ_MEDIA_IMAGES",
-        "WRITE_EXTERNAL_STORAGE"
+        "READ_MEDIA_IMAGES"
       ],
       "blockedPermissions": ["READ_MEDIA_VIDEO", "READ_MEDIA_AUDIO"]
     },
@@ -35,7 +34,6 @@
       "expo-file-system",
       "expo-dev-client",
       ["expo-build-properties", {"android": {"compileSdkVersion": 34, "targetSdkVersion": 34}}],
-      ["expo-font", {"fonts": []}],
       ["expo-splash-screen", {"backgroundColor": "#0f172a"}]
     ],
     "experiments": {
