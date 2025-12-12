@@ -24,9 +24,21 @@ export const useImageStore = create<ImageState>((set) => ({
   editedImages: [],
   orderedImages: [],
   generatedPdfPath: undefined,
-  setSelectedImages: (images) => set({ selectedImages: images, editedImages: images, orderedImages: images }),
-  setEditedImages: (images) => set({ editedImages: images, orderedImages: images }),
+  setSelectedImages: (images) =>
+    set({
+      selectedImages: images,
+      editedImages: images,
+      orderedImages: images,
+    }),
+  setEditedImages: (images) =>
+    set({ editedImages: images, orderedImages: images }),
   setOrderedImages: (images) => set({ orderedImages: images }),
   setGeneratedPdfPath: (path) => set({ generatedPdfPath: path }),
-  resetAll: () => set({ selectedImages: [], editedImages: [], orderedImages: [], generatedPdfPath: undefined }),
+  resetAll: () =>
+    set({
+      selectedImages: [],
+      editedImages: [],
+      orderedImages: [],
+      generatedPdfPath: undefined,
+    }),
 }));

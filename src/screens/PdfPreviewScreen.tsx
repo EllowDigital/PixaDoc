@@ -1,14 +1,24 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
-import PDFView from "react-native-pdf";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import PDFView from "react-native-pdf";
+
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { useImageStore } from "../store/imageStore";
 import { generatePdf } from "../services/pdfService";
+import { useImageStore } from "../store/imageStore";
 
 export default function PdfPreviewScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const orderedImages = useImageStore((s) => s.orderedImages);
   const pdfPath = useImageStore((s) => s.generatedPdfPath);
   const setPdfPath = useImageStore((s) => s.setGeneratedPdfPath);
@@ -44,11 +54,7 @@ export default function PdfPreviewScreen() {
       <View style={styles.previewBox}>
         {loading && <ActivityIndicator color="#38bdf8" style={styles.loader} />}
         {pdfPath ? (
-          <PDFView
-            source={{ uri: pdfPath }}
-            style={styles.pdf}
-            trustAllCerts
-          />
+          <PDFView source={{ uri: pdfPath }} style={styles.pdf} trustAllCerts />
         ) : (
           <Text style={styles.placeholder}>Generating PDF...</Text>
         )}

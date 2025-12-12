@@ -1,6 +1,7 @@
+import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+
 import { requestSavePermissions } from "../utils/permissions";
 
 export async function savePdfToLibrary(pdfPath: string): Promise<boolean> {
@@ -20,7 +21,10 @@ export async function savePdfToLibrary(pdfPath: string): Promise<boolean> {
 export async function sharePdf(pdfPath: string): Promise<void> {
   const canShare = await Sharing.isAvailableAsync();
   if (!canShare) throw new Error("Sharing is not available on this device");
-  await Sharing.shareAsync(pdfPath, { UTI: "com.adobe.pdf", mimeType: "application/pdf" });
+  await Sharing.shareAsync(pdfPath, {
+    UTI: "com.adobe.pdf",
+    mimeType: "application/pdf",
+  });
 }
 
 export async function deleteFileIfExists(path?: string) {

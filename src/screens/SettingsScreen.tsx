@@ -4,11 +4,18 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>PixaDoc</Text>
-      <Text style={styles.text}>Offline image to PDF conversion. No cloud, no tracking.</Text>
+      <Text style={styles.text}>
+        Offline image to PDF conversion. No cloud, no tracking.
+      </Text>
       <Text style={styles.label}>Version</Text>
       <Text style={styles.text}>1.0.0</Text>
       <Text style={styles.label}>Support</Text>
-      <Text style={styles.link} onPress={() => Linking.openURL("mailto:support@pixadoc.app")}>support@pixadoc.app</Text>
+      <Text
+        style={styles.link}
+        onPress={() => Linking.openURL("mailto:support@pixadoc.app")}
+      >
+        support@pixadoc.app
+      </Text>
     </View>
   );
 }

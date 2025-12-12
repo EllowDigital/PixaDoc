@@ -1,8 +1,13 @@
 import "react-native-gesture-handler";
 import "react-native-reanimated";
-import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "react-native";
+
 import AppNavigator from "./navigation/AppNavigator";
 
 const Light = {

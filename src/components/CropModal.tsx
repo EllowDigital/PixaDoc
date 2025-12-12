@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 type Props = {
   visible: boolean;
@@ -20,11 +27,18 @@ export default function CropModal({ visible, onClose, onConfirm }: Props) {
   const setPreset = (num: number) => setValue(num.toString());
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <Text style={styles.title}>Crop Inset (%)</Text>
-          <Text style={styles.subtitle}>Enter how much to trim from each edge (0-45%).</Text>
+          <Text style={styles.subtitle}>
+            Enter how much to trim from each edge (0-45%).
+          </Text>
           <TextInput
             keyboardType="numeric"
             placeholder="10"
@@ -35,16 +49,26 @@ export default function CropModal({ visible, onClose, onConfirm }: Props) {
           />
           <View style={styles.row}>
             {[5, 10, 15, 20].map((n) => (
-              <Pressable key={n} style={styles.pill} onPress={() => setPreset(n)}>
+              <Pressable
+                key={n}
+                style={styles.pill}
+                onPress={() => setPreset(n)}
+              >
                 <Text style={styles.pillText}>{n}%</Text>
               </Pressable>
             ))}
           </View>
           <View style={styles.actions}>
-            <Pressable style={[styles.button, styles.secondary]} onPress={onClose}>
+            <Pressable
+              style={[styles.button, styles.secondary]}
+              onPress={onClose}
+            >
               <Text style={styles.buttonText}>Cancel</Text>
             </Pressable>
-            <Pressable style={[styles.button, styles.primary]} onPress={confirm}>
+            <Pressable
+              style={[styles.button, styles.primary]}
+              onPress={confirm}
+            >
               <Text style={styles.buttonText}>Apply</Text>
             </Pressable>
           </View>

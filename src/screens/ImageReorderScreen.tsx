@@ -1,16 +1,25 @@
-import DraggableFlatList, { RenderItemParams } from "react-native-draggable-flatlist";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useImageStore, ImageItem } from "../store/imageStore";
+import DraggableFlatList, {
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
+
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { useImageStore, ImageItem } from "../store/imageStore";
 
 export default function ImageReorderScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const images = useImageStore((s) => s.orderedImages);
   const setOrderedImages = useImageStore((s) => s.setOrderedImages);
 
-  const renderItem = ({ item, drag, isActive, index }: RenderItemParams<ImageItem>) => (
+  const renderItem = ({
+    item,
+    drag,
+    isActive,
+    index,
+  }: RenderItemParams<ImageItem>) => (
     <Pressable
       onLongPress={drag}
       disabled={isActive}
@@ -25,24 +34,27 @@ export default function ImageReorderScreen() {
   );
 
   const goPreview = () => {
-    navigation.navigate("PdfPreview");
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Drag to reorder the PDF pages.</Text>
-      <DraggableFlatList
-        data={images}
-        keyExtractor={(item) => item.id}
-        onDragEnd={({ data }) => setOrderedImages(data)}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
-      <Pressable style={styles.primary} onPress={goPreview}>
-        <Text style={styles.primaryText}>Generate PDF</Text>
+  const renderItem = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<ImageItem>) => {
+    const index = getIndex() ?? 0;
+    return (
+      <Pressable
+        onLongPress={drag}
+        disabled={isActive}
+        style={[styles.row, isActive && styles.activeRow]}
+      >
+        <Text style={styles.position}>#{index + 1}</Text>
+        <Text numberOfLines={1} style={styles.uri}>
+          {item.uri}
+        </Text>
+        <Text style={styles.dragHint}>⇅</Text>
       </Pressable>
-    </View>
-  );
+    );
+  };
 }
 
 const styles = StyleSheet.create({

@@ -1,11 +1,13 @@
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StyleSheet, Text, View, Pressable } from "react-native";
+
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { useImageStore } from "../store/imageStore";
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const resetAll = useImageStore((s) => s.resetAll);
 
   const startFlow = () => {
@@ -22,13 +24,18 @@ export default function HomeScreen() {
 
       <View style={styles.card}>
         <Text style={styles.title}>Create a PDF</Text>
-        <Text style={styles.desc}>Pick, edit, reorder, and export a crisp PDF without internet.</Text>
+        <Text style={styles.desc}>
+          Pick, edit, reorder, and export a crisp PDF without internet.
+        </Text>
         <Pressable style={styles.primary} onPress={startFlow}>
           <Text style={styles.primaryText}>Start</Text>
         </Pressable>
       </View>
 
-      <Pressable style={styles.secondary} onPress={() => navigation.navigate("Settings")}> 
+      <Pressable
+        style={styles.secondary}
+        onPress={() => navigation.navigate("Settings")}
+      >
         <Text style={styles.secondaryText}>Settings & App Info</Text>
       </Pressable>
     </View>

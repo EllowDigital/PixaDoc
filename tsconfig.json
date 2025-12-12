@@ -13,7 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-native",
     "baseUrl": "./src",
-    "types": ["jest", "react-native", "react", "react-native-reanimated"],
+    "types": ["react-native", "react", "react-native-reanimated"],
     "paths": {
       "*": ["./*", "./src/*"]
     }

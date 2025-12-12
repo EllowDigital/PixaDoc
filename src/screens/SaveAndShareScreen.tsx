@@ -1,13 +1,15 @@
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useNavigation } from "@react-navigation/native";
+
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { useImageStore } from "../store/imageStore";
 import { savePdfToLibrary, sharePdf } from "../services/fileService";
+import { useImageStore } from "../store/imageStore";
 
 export default function SaveAndShareScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const pdfPath = useImageStore((s) => s.generatedPdfPath);
   const [busy, setBusy] = useState(false);
 
@@ -46,13 +48,22 @@ export default function SaveAndShareScreen() {
     <View style={styles.container}>
       <Text style={styles.label}>PDF ready</Text>
       <Text style={styles.path}>{pdfPath}</Text>
-      <Pressable style={[styles.primary, busy && styles.disabled]} onPress={handleSave} disabled={busy}>
-        <Text style={styles.primaryText}>{busy ? "Working..." : "Save to device"}</Text>
+      <Pressable
+        style={[styles.primary, busy && styles.disabled]}
+        onPress={handleSave}
+        disabled={busy}
+      >
+        <Text style={styles.primaryText}>
+          {busy ? "Working..." : "Save to device"}
+        </Text>
       </Pressable>
       <Pressable style={styles.secondary} onPress={handleShare} disabled={busy}>
         <Text style={styles.secondaryText}>Share</Text>
       </Pressable>
-      <Pressable style={styles.link} onPress={() => navigation.navigate("Home")}> 
+      <Pressable
+        style={styles.link}
+        onPress={() => navigation.navigate("Home")}
+      >
         <Text style={styles.linkText}>Back to Home</Text>
       </Pressable>
     </View>

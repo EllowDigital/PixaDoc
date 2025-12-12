@@ -1,15 +1,25 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../navigation/AppNavigator";
-import { useImageStore } from "../store/imageStore";
-import { cropImage, rotateImage } from "../services/imageService";
-import RotateButton from "../components/RotateButton";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
 import CropModal from "../components/CropModal";
+import RotateButton from "../components/RotateButton";
+import { RootStackParamList } from "../navigation/AppNavigator";
+import { cropImage, rotateImage } from "../services/imageService";
+import { useImageStore } from "../store/imageStore";
 
 export default function ImageEditorScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const images = useImageStore((s) => s.editedImages);
   const setEditedImages = useImageStore((s) => s.setEditedImages);
   const [index, setIndex] = useState(0);
@@ -25,7 +35,9 @@ export default function ImageEditorScreen() {
   const current = images[index];
 
   const updateImage = (imgUri: string, width?: number, height?: number) => {
-    const updated = images.map((item, i) => (i === index ? { ...item, uri: imgUri, width, height } : item));
+    const updated = images.map((item, i) =>
+      i === index ? { ...item, uri: imgUri, width, height } : item,
+    );
     setEditedImages(updated);
   };
 
@@ -65,25 +77,47 @@ export default function ImageEditorScreen() {
       {current ? (
         <>
           <View style={styles.previewBox}>
-            {busy && <ActivityIndicator color="#38bdf8" style={styles.loader} />}
-            <Image source={{ uri: current.uri }} style={styles.preview} resizeMode="contain" />
+            {busy && (
+              <ActivityIndicator color="#38bdf8" style={styles.loader} />
+            )}
+            <Image
+              source={{ uri: current.uri }}
+              style={styles.preview}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.counter}>
             Image {index + 1} of {images.length}
           </Text>
           <View style={styles.controls}>
-            <RotateButton direction="left" onPress={() => handleRotate("left")} />
-            <RotateButton direction="right" onPress={() => handleRotate("right")} />
+            <RotateButton
+              direction="left"
+              onPress={() => handleRotate("left")}
+            />
+            <RotateButton
+              direction="right"
+              onPress={() => handleRotate("right")}
+            />
           </View>
-          <Pressable style={styles.secondary} onPress={() => setCropVisible(true)}>
+          <Pressable
+            style={styles.secondary}
+            onPress={() => setCropVisible(true)}
+          >
             <Text style={styles.secondaryText}>Crop</Text>
           </Pressable>
           <View style={styles.navRow}>
-            <Pressable style={[styles.navButton, index === 0 && styles.disabled]} onPress={prev} disabled={index === 0}>
+            <Pressable
+              style={[styles.navButton, index === 0 && styles.disabled]}
+              onPress={prev}
+              disabled={index === 0}
+            >
               <Text style={styles.navText}>Prev</Text>
             </Pressable>
             <Pressable
-              style={[styles.navButton, index === images.length - 1 && styles.disabled]}
+              style={[
+                styles.navButton,
+                index === images.length - 1 && styles.disabled,
+              ]}
               onPress={next}
               disabled={index === images.length - 1}
             >

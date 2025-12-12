@@ -1,5 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import * as Print from "expo-print";
+
 import { ImageItem } from "../store/imageStore";
 
 const OUTPUT_DIR = `${FileSystem.documentDirectory}pixadoc`;
@@ -12,7 +13,9 @@ async function ensureDir() {
 }
 
 async function imageToBase64(uri: string) {
-  return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+  return FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
 }
 
 function buildHtml(imageData: { data: string; mime: string }[]) {
@@ -22,7 +25,7 @@ function buildHtml(imageData: { data: string; mime: string }[]) {
       <div style="page-break-after: always; display: flex; align-items: center; justify-content: center; height: 100vh; background: #0f172a;">
         <img src="data:${item.mime};base64,${item.data}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="page-${index + 1}" />
       </div>
-    `
+    `,
     )
     .join("\n");
 
@@ -53,7 +56,10 @@ export async function generatePdf(images: ImageItem[]): Promise<string> {
   await ensureDir();
 
   const sources = await Promise.all(
-    images.map(async (img) => ({ data: await imageToBase64(img.uri), mime: guessMime(img.uri) }))
+    images.map(async (img) => ({
+      data: await imageToBase64(img.uri),
+      mime: guessMime(img.uri),
+    })),
   );
 
   const html = buildHtml(sources);

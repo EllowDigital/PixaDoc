@@ -1,14 +1,23 @@
-import { useState } from "react";
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import ImageCard from "../components/ImageCard";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { pickImages } from "../services/imageService";
 import { useImageStore } from "../store/imageStore";
-import ImageCard from "../components/ImageCard";
 
 export default function ImagePickerScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const setSelectedImages = useImageStore((s) => s.setSelectedImages);
   const selectedImages = useImageStore((s) => s.selectedImages);
   const [loading, setLoading] = useState(false);
@@ -35,8 +44,14 @@ export default function ImagePickerScreen() {
 
   return (
     <View style={styles.container}>
-      <Pressable style={[styles.button, loading && styles.disabled]} onPress={handlePick} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Opening gallery..." : "Select images"}</Text>
+      <Pressable
+        style={[styles.button, loading && styles.disabled]}
+        onPress={handlePick}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Opening gallery..." : "Select images"}
+        </Text>
       </Pressable>
 
       <FlatList
