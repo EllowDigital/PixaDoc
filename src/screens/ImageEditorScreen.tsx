@@ -1,227 +1,141 @@
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StackScreenProps } from '@react-navigation/stack';
+import * as ImageManipulator from 'expo-image-manipulator';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { ImageItem, useImageStore } from '../store/imageStore';
 
-import CropModal from "../components/CropModal";
-import RotateButton from "../components/RotateButton";
-import { RootStackParamList } from "../navigation/AppNavigator";
-import { cropImage, rotateImage } from "../services/imageService";
-import { useImageStore } from "../store/imageStore";
+const accent = '#7c3aed';
 
-export default function ImageEditorScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const images = useImageStore((s) => s.editedImages);
-  const setEditedImages = useImageStore((s) => s.setEditedImages);
-  const [index, setIndex] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [cropVisible, setCropVisible] = useState(false);
+type Props = StackScreenProps<RootStackParamList, 'ImageEditor'>;
 
-  useEffect(() => {
-    if (!images.length) {
-      navigation.replace("ImagePicker");
-    }
-  }, [images.length, navigation]);
+type CropPreset = 'square' | 'a4';
 
-  const current = images[index];
+const computeCrop = (img: ImageItem, preset: CropPreset) => {
+  const ratio = preset === 'square' ? 1 : 210 / 297; // A4 portrait ratio
+  const { width, height } = img;
+  if (!width || !height) return undefined;
 
-  const updateImage = (imgUri: string, width?: number, height?: number) => {
-    const updated = images.map((item, i) =>
-      i === index ? { ...item, uri: imgUri, width, height } : item,
+  const currentRatio = width / height;
+  let targetWidth = width;
+  let targetHeight = height;
+
+  if (currentRatio > ratio) {
+    targetWidth = height * ratio;
+  } else {
+    targetHeight = width / ratio;
+  }
+
+  const originX = (width - targetWidth) / 2;
+  const originY = (height - targetHeight) / 2;
+
+  return {
+    originX,
+    originY,
+    width: targetWidth,
+    height: targetHeight,
+  };
+};
+
+const ImageEditorScreen = ({ route, navigation }: Props) => {
+  const { imageId } = route.params;
+  const image = useImageStore((s) => s.images.find((img) => img.id === imageId));
+  const updateImage = useImageStore((s) => s.updateImage);
+  const [working, setWorking] = useState(false);
+
+  const cropSquare = useMemo(() => (image ? computeCrop(image, 'square') : undefined), [image]);
+  const cropA4 = useMemo(() => (image ? computeCrop(image, 'a4') : undefined), [image]);
+
+  const runManipulation = useCallback(
+    async (actions: ImageManipulator.Action[]) => {
+      if (!image) return;
+      try {
+        setWorking(true);
+        const manipulated = await ImageManipulator.manipulateAsync(image.uri, actions, {
+          compress: 1,
+          format: ImageManipulator.SaveFormat.JPEG,
+        });
+        updateImage(image.id, {
+          uri: manipulated.uri,
+          width: manipulated.width,
+          height: manipulated.height,
+        });
+      } catch (err) {
+        Alert.alert('Edit error', 'Could not update this image.');
+      } finally {
+        setWorking(false);
+      }
+    },
+    [image, updateImage],
+  );
+
+  if (!image) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.container}>
+          <Text style={styles.muted}>Image not found.</Text>
+        </View>
+      </SafeAreaView>
     );
-    setEditedImages(updated);
-  };
-
-  const handleRotate = async (direction: "left" | "right") => {
-    if (!current) return;
-    try {
-      setBusy(true);
-      const edited = await rotateImage(current, direction);
-      updateImage(edited.uri, edited.width, edited.height);
-    } catch (err) {
-      Alert.alert("Rotate failed", (err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCrop = async (inset: number) => {
-    if (!current) return;
-    try {
-      setBusy(true);
-      const edited = await cropImage(current, inset);
-      updateImage(edited.uri, edited.width, edited.height);
-    } catch (err) {
-      Alert.alert("Crop failed", (err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const next = () => setIndex((prev) => Math.min(prev + 1, images.length - 1));
-  const prev = () => setIndex((prev) => Math.max(prev - 1, 0));
-
-  const goReorder = () => navigation.navigate("ImageReorder");
+  }
 
   return (
-    <View style={styles.container}>
-      {current ? (
-        <>
-          <View style={styles.previewBox}>
-            {busy && (
-              <ActivityIndicator color="#38bdf8" style={styles.loader} />
-            )}
-            <Image
-              source={{ uri: current.uri }}
-              style={styles.preview}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.counter}>
-            Image {index + 1} of {images.length}
-          </Text>
-          <View style={styles.controls}>
-            <RotateButton
-              direction="left"
-              onPress={() => handleRotate("left")}
-            />
-            <RotateButton
-              direction="right"
-              onPress={() => handleRotate("right")}
-            />
-          </View>
-          <Pressable
-            style={styles.secondary}
-            onPress={() => setCropVisible(true)}
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <Image source={{ uri: image.uri }} style={styles.preview} resizeMode="contain" />
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => runManipulation([{ rotate: 90 }])}
+            disabled={working}
           >
-            <Text style={styles.secondaryText}>Crop</Text>
-          </Pressable>
-          <View style={styles.navRow}>
-            <Pressable
-              style={[styles.navButton, index === 0 && styles.disabled]}
-              onPress={prev}
-              disabled={index === 0}
-            >
-              <Text style={styles.navText}>Prev</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.navButton,
-                index === images.length - 1 && styles.disabled,
-              ]}
-              onPress={next}
-              disabled={index === images.length - 1}
-            >
-              <Text style={styles.navText}>Next</Text>
-            </Pressable>
-          </View>
-          <Pressable style={styles.primary} onPress={goReorder}>
-            <Text style={styles.primaryText}>Reorder images</Text>
-          </Pressable>
-        </>
-      ) : (
-        <Text style={styles.empty}>No images selected.</Text>
-      )}
-      <CropModal
-        visible={cropVisible}
-        onClose={() => setCropVisible(false)}
-        onConfirm={handleCrop}
-      />
-    </View>
+            {working ? <ActivityIndicator color="#fff" /> : <Text style={styles.actionText}>Rotate 90°</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => cropSquare && runManipulation([{ crop: cropSquare }])}
+            disabled={working || !cropSquare}
+          >
+            <Text style={styles.actionText}>Crop Square</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => cropA4 && runManipulation([{ crop: cropA4 }])}
+            disabled={working || !cropA4}
+          >
+            <Text style={styles.actionText}>Crop A4</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.doneBtn} onPress={() => navigation.goBack()} disabled={working}>
+          <Text style={styles.doneText}>Done</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  safe: { flex: 1, backgroundColor: '#0b1224' },
+  container: { flex: 1, padding: 16, justifyContent: 'space-between' },
+  preview: { width: '100%', height: 420, borderRadius: 12, backgroundColor: '#0f172a' },
+  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, gap: 8 },
+  actionBtn: {
     flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 16,
-  },
-  previewBox: {
-    backgroundColor: "#0b1220",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#1e293b",
-    height: 320,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-  preview: {
-    width: "100%",
-    height: "100%",
-  },
-  loader: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    zIndex: 2,
-  },
-  counter: {
-    color: "#e2e8f0",
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  controls: {
-    flexDirection: "row",
-    marginBottom: 12,
-  },
-  secondary: {
-    backgroundColor: "#1e293b",
+    backgroundColor: accent,
     paddingVertical: 12,
     borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 12,
+    alignItems: 'center',
   },
-  secondaryText: {
-    color: "#e2e8f0",
-    fontWeight: "700",
-  },
-  navRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  navButton: {
-    flex: 1,
-    marginHorizontal: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#1e293b",
-    alignItems: "center",
-  },
-  navText: {
-    color: "#e2e8f0",
-    fontWeight: "700",
-  },
-  primary: {
-    backgroundColor: "#38bdf8",
+  actionText: { color: '#f8fafc', fontWeight: '700' },
+  doneBtn: {
+    backgroundColor: '#1f2937',
     paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 4,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
   },
-  primaryText: {
-    color: "#0b1220",
-    fontWeight: "800",
-  },
-  empty: {
-    color: "#94a3b8",
-    textAlign: "center",
-    marginTop: 50,
-  },
-  disabled: {
-    opacity: 0.4,
-  },
+  doneText: { color: '#e2e8f0', fontWeight: '700', fontSize: 16 },
+  muted: { color: '#94a3b8' },
 });
+
+export default ImageEditorScreen;

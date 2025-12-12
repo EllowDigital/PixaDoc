@@ -1,48 +1,40 @@
-import {
-  documentDirectory,
-  EncodingType,
-  getInfoAsync,
-  makeDirectoryAsync,
-  moveAsync,
-  readAsStringAsync,
-} from "expo-file-system";
-import * as Print from "expo-print";
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
+import { ImageItem } from '../store/imageStore';
 
-import { ImageItem } from "../store/imageStore";
+const PDF_DIR = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory}pixadoc/`;
 
-const OUTPUT_DIR = `${documentDirectory}pixadoc`;
-
-async function ensureDir() {
-  const dirInfo = await getInfoAsync(OUTPUT_DIR);
+const ensureDir = async () => {
+  const dirInfo = await FileSystem.getInfoAsync(PDF_DIR);
   if (!dirInfo.exists) {
-    await makeDirectoryAsync(OUTPUT_DIR, { intermediates: true });
+    await FileSystem.makeDirectoryAsync(PDF_DIR, { intermediates: true });
   }
-}
+};
 
-async function imageToBase64(uri: string) {
-  return readAsStringAsync(uri, {
-    encoding: EncodingType.Base64,
-  });
-}
+const imageToBase64 = async (uri: string) => {
+  return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+};
 
-function buildHtml(imageData: { data: string; mime: string }[]) {
-  const pages = imageData
+const buildHtml = (base64Images: string[]) => {
+  const pages = base64Images
     .map(
-      (item, index) => `
-      <div style="page-break-after: always; display: flex; align-items: center; justify-content: center; height: 100vh; background: #0f172a;">
-        <img src="data:${item.mime};base64,${item.data}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="page-${index + 1}" />
-      </div>
-    `,
+      (b64, index) => `
+        <div class="page" aria-label="Page ${index + 1}">
+          <img src="data:image/jpeg;base64,${b64}" />
+        </div>
+      `,
     )
-    .join("\n");
+    .join('');
 
   return `
     <html>
       <head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
-          * { margin: 0; padding: 0; }
-          body { background: #0f172a; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+          .page { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 16px; }
+          img { width: 100%; height: auto; object-fit: contain; }
         </style>
       </head>
       <body>
@@ -50,29 +42,17 @@ function buildHtml(imageData: { data: string; mime: string }[]) {
       </body>
     </html>
   `;
-}
+};
 
-function guessMime(uri: string): string {
-  if (uri.endsWith(".png")) return "image/png";
-  if (uri.endsWith(".webp")) return "image/webp";
-  return "image/jpeg";
-}
+export const generatePdfFromImages = async (images: ImageItem[]): Promise<string> => {
+  if (!images.length) throw new Error('No images to generate PDF');
 
-export async function generatePdf(images: ImageItem[]): Promise<string> {
-  if (!images.length) throw new Error("No images to convert");
   await ensureDir();
+  const base64Images = await Promise.all(images.map((img) => imageToBase64(img.uri)));
+  const html = buildHtml(base64Images);
 
-  const sources = await Promise.all(
-    images.map(async (img) => ({
-      data: await imageToBase64(img.uri),
-      mime: guessMime(img.uri),
-    })),
-  );
-
-  const html = buildHtml(sources);
-  const fileName = `pixadoc-${Date.now()}.pdf`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
-  const dest = `${OUTPUT_DIR}/${fileName}`;
-  await moveAsync({ from: uri, to: dest });
-  return dest;
-}
+  const target = `${PDF_DIR}pixadoc-${Date.now()}.pdf`;
+  await FileSystem.moveAsync({ from: uri, to: target });
+  return target;
+};

@@ -1,108 +1,106 @@
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import DraggableFlatList, {
-  RenderItemParams,
-} from "react-native-draggable-flatlist";
+import { StackScreenProps } from '@react-navigation/stack';
+import React, { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { generatePdfFromImages } from '../services/pdfService';
+import { ImageItem, useImageStore } from '../store/imageStore';
 
-import { RootStackParamList } from "../navigation/AppNavigator";
-import { useImageStore, ImageItem } from "../store/imageStore";
+const accent = '#7c3aed';
 
-export default function ImageReorderScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const images = useImageStore((s) => s.orderedImages);
-  const setOrderedImages = useImageStore((s) => s.setOrderedImages);
+type Props = StackScreenProps<RootStackParamList, 'ImageReorder'>;
 
-  const renderItem = ({
-    item,
-    drag,
-    isActive,
-    getIndex,
-  }: RenderItemParams<ImageItem>) => {
-    const index = getIndex() ?? 0;
-    return (
-      <Pressable
+const ImageReorderScreen = ({ navigation }: Props) => {
+  const images = useImageStore((s) => s.images);
+  const reorderImages = useImageStore((s) => s.reorderImages);
+  const setPdfPath = useImageStore((s) => s.setPdfPath);
+  const [generating, setGenerating] = useState(false);
+
+  const onGenerate = useCallback(async () => {
+    if (!images.length) {
+      Alert.alert('Add images', 'Pick at least one image to generate a PDF.');
+      return;
+    }
+    try {
+      setGenerating(true);
+      const pdfUri = await generatePdfFromImages(images);
+      setPdfPath(pdfUri);
+      navigation.navigate('PdfPreview', { uri: pdfUri });
+    } catch (err) {
+      Alert.alert('PDF error', 'Could not generate PDF. Please try again.');
+    } finally {
+      setGenerating(false);
+    }
+  }, [images, navigation, setPdfPath]);
+
+  const renderItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<ImageItem>) => (
+      <TouchableOpacity
+        style={[styles.card, isActive && styles.cardActive]}
         onLongPress={drag}
-        disabled={isActive}
-        style={[styles.row, isActive && styles.activeRow]}
+        delayLongPress={120}
+        onPress={() => navigation.navigate('ImageEditor', { imageId: item.id })}
       >
-        <Text style={styles.position}>#{index + 1}</Text>
-        <Text numberOfLines={1} style={styles.uri}>
-          {item.uri}
-        </Text>
-        <Text style={styles.dragHint}>⇅</Text>
-      </Pressable>
-    );
-  };
-
-  const goPreview = () => {
-    navigation.navigate("PdfPreview");
-  };
+        <Image source={{ uri: item.uri }} style={styles.image} resizeMode="cover" />
+        <View style={styles.cardFooter}>
+          <Text style={styles.cardText}>Tap to edit • Long press to drag</Text>
+        </View>
+      </TouchableOpacity>
+    ),
+    [navigation],
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Drag to reorder the PDF pages.</Text>
-      <DraggableFlatList
-        data={images}
-        keyExtractor={(item) => item.id}
-        onDragEnd={({ data }) => setOrderedImages(data)}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
-      <Pressable style={styles.primary} onPress={goPreview}>
-        <Text style={styles.primaryText}>Generate PDF</Text>
-      </Pressable>
-    </View>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <DraggableFlatList
+          data={images}
+          keyExtractor={(item) => item.id}
+          onDragEnd={({ data }) => reorderImages(data)}
+          renderItem={renderItem}
+          contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+          ListEmptyComponent={<Text style={styles.empty}>No images yet. Pick some to begin.</Text>}
+        />
+        <TouchableOpacity style={styles.primaryBtn} onPress={onGenerate} disabled={generating}>
+          {generating ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryText}>Generate PDF</Text>}
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 16,
-  },
-  title: {
-    color: "#e2e8f0",
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0b1220",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#1e293b",
-  },
-  activeRow: {
-    borderColor: "#38bdf8",
-  },
-  position: {
-    color: "#38bdf8",
-    fontWeight: "800",
-    marginRight: 10,
-  },
-  uri: {
-    flex: 1,
-    color: "#e2e8f0",
-  },
-  dragHint: {
-    color: "#94a3b8",
-    marginLeft: 10,
-  },
-  primary: {
-    backgroundColor: "#38bdf8",
-    paddingVertical: 14,
+  safe: { flex: 1, backgroundColor: '#0b1224' },
+  container: { flex: 1, padding: 16 },
+  card: {
+    backgroundColor: '#11182c',
     borderRadius: 14,
-    alignItems: "center",
-    marginTop: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  primaryText: {
-    color: "#0b1220",
-    fontWeight: "800",
+  cardActive: { borderColor: accent, transform: [{ scale: 1.01 }] },
+  image: { width: '100%', height: 220 },
+  cardFooter: { padding: 12 },
+  cardText: { color: '#cbd5e1', fontSize: 14 },
+  empty: { color: '#94a3b8', textAlign: 'center', marginTop: 20 },
+  primaryBtn: {
+    backgroundColor: accent,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 12,
   },
+  primaryText: { color: '#f8fafc', fontWeight: '700', fontSize: 16 },
 });
+
+export default ImageReorderScreen;
