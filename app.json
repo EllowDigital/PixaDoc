@@ -3,6 +3,7 @@
     "name": "PixaDoc",
     "slug": "pixadoc",
     "version": "1.0.0",
+    "scheme": "pixadoc",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -32,6 +33,7 @@
       "expo-image-picker",
       "expo-media-library",
       "expo-file-system",
+      "expo-dev-client",
       ["expo-build-properties", {"android": {"compileSdkVersion": 34, "targetSdkVersion": 34}}],
       ["expo-font", {"fonts": []}],
       ["expo-splash-screen", {"backgroundColor": "#0f172a"}]

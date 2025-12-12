@@ -18,26 +18,6 @@ export default function ImageReorderScreen() {
     item,
     drag,
     isActive,
-    index,
-  }: RenderItemParams<ImageItem>) => (
-    <Pressable
-      onLongPress={drag}
-      disabled={isActive}
-      style={[styles.row, isActive && styles.activeRow]}
-    >
-      <Text style={styles.position}>#{index + 1}</Text>
-      <Text numberOfLines={1} style={styles.uri}>
-        {item.uri}
-      </Text>
-      <Text style={styles.dragHint}>⇅</Text>
-    </Pressable>
-  );
-
-  const goPreview = () => {
-  const renderItem = ({
-    item,
-    drag,
-    isActive,
     getIndex,
   }: RenderItemParams<ImageItem>) => {
     const index = getIndex() ?? 0;
@@ -55,6 +35,26 @@ export default function ImageReorderScreen() {
       </Pressable>
     );
   };
+
+  const goPreview = () => {
+    navigation.navigate("PdfPreview");
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Drag to reorder the PDF pages.</Text>
+      <DraggableFlatList
+        data={images}
+        keyExtractor={(item) => item.id}
+        onDragEnd={({ data }) => setOrderedImages(data)}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
+      <Pressable style={styles.primary} onPress={goPreview}>
+        <Text style={styles.primaryText}>Generate PDF</Text>
+      </Pressable>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
