@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "jsx": "react-native",
+    "lib": ["ESNext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "types": ["react", "react-native", "react-native-svg"]
+  },
+  "include": ["src", "App.tsx", "app.config.ts"],
+  "extends": "expo/tsconfig.base"
+}

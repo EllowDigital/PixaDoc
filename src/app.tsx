@@ -6,6 +6,7 @@ import {
   DarkTheme,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "react-native";
 
 import AppNavigator from "./navigation/AppNavigator";
@@ -38,9 +39,11 @@ export default function App() {
   const scheme = useColorScheme();
 
   return (
-    <NavigationContainer theme={scheme === "dark" ? Dark : Light}>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer theme={scheme === "dark" ? Dark : Light}>
+        <StatusBar style="light" />
+        <AppNavigator />
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }

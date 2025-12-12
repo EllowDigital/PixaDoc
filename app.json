@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "PixaDoc",
+    "slug": "pixadoc",
+    "scheme": "pixadoc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pixadoc.app"
+    },
+    "android": {
+      "package": "com.pixadoc.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": ["android.permission.INTERNET"]
+    },
+    "plugins": [
+      "expo-image-picker",
+      "expo-media-library",
+      "expo-file-system",
+      "expo-print",
+      ["expo-build-properties", {
+        "android": {
+          "packagingOptions": {
+            "pickFirst": [
+              "META-INF/*"
+            ]
+          }
+        }
+      }]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "pixadoc-offline"
+      }
+    }
+  }
+}
