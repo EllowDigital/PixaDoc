@@ -4,19 +4,19 @@ import { Platform } from "react-native";
 
 export async function requestImagePermissions(): Promise<boolean> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  return status === "granted" || status === "limited";
+  return status === "granted" || (status as string) === "limited";
 }
 
 export async function requestCameraPermissions(): Promise<boolean> {
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  return status === "granted" || status === "limited";
+  return status === "granted" || (status as string) === "limited";
 }
 
 export async function requestSavePermissions(): Promise<boolean> {
   if (Platform.OS === "android") {
     const { status } = await MediaLibrary.requestPermissionsAsync();
-    return status === "granted" || status === "limited";
+    return status === "granted" || (status as string) === "limited";
   }
   const { status } = await MediaLibrary.requestPermissionsAsync();
-  return status === "granted" || status === "limited";
+  return status === "granted" || (status as string) === "limited";
 }
