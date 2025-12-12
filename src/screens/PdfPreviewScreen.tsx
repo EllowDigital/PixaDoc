@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
+import { ComponentType, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,10 +10,10 @@ import {
   Text,
   View,
 } from "react-native";
-import PDFView from "react-native-pdf";
 
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { generatePdf } from "../services/pdfService";
+import { sharePdf } from "../services/fileService";
 import { useImageStore } from "../store/imageStore";
 
 export default function PdfPreviewScreen() {
@@ -23,6 +23,15 @@ export default function PdfPreviewScreen() {
   const pdfPath = useImageStore((s) => s.generatedPdfPath);
   const setPdfPath = useImageStore((s) => s.setGeneratedPdfPath);
   const [loading, setLoading] = useState(false);
+  const [PdfComponent, setPdfComponent] =
+    useState<ComponentType<any> | null>(null);
+  const [pdfSupported, setPdfSupported] = useState(true);
+
+  useEffect(() => {
+    import("react-native-pdf")
+      .then((mod) => setPdfComponent(() => mod.default))
+      .catch(() => setPdfSupported(false));
+  }, []);
 
   const buildPdf = async () => {
     if (!orderedImages.length) {
@@ -49,12 +58,28 @@ export default function PdfPreviewScreen() {
 
   const goSave = () => navigation.navigate("SaveAndShare");
 
+  const openExternal = async () => {
+    if (!pdfPath) return;
+    try {
+      setLoading(true);
+      await sharePdf(pdfPath);
+    } catch (err) {
+      Alert.alert("Preview", (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.previewBox}>
         {loading && <ActivityIndicator color="#38bdf8" style={styles.loader} />}
-        {pdfPath ? (
-          <PDFView source={{ uri: pdfPath }} style={styles.pdf} trustAllCerts />
+        {pdfPath && PdfComponent ? (
+          <PdfComponent source={{ uri: pdfPath }} style={styles.pdf} trustAllCerts />
+        ) : pdfPath && !pdfSupported ? (
+          <Text style={styles.placeholder}>
+            PDF preview needs a dev build. Tap below to open via system share.
+          </Text>
         ) : (
           <Text style={styles.placeholder}>Generating PDF...</Text>
         )}
@@ -62,6 +87,11 @@ export default function PdfPreviewScreen() {
       <Pressable style={styles.secondary} onPress={buildPdf}>
         <Text style={styles.secondaryText}>Regenerate</Text>
       </Pressable>
+      {!PdfComponent && pdfPath ? (
+        <Pressable style={styles.secondary} onPress={openExternal}>
+          <Text style={styles.secondaryText}>Open in system viewer</Text>
+        </Pressable>
+      ) : null}
       <Pressable style={styles.primary} onPress={goSave} disabled={!pdfPath}>
         <Text style={styles.primaryText}>Save & Share</Text>
       </Pressable>
