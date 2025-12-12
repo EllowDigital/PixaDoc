@@ -4,13 +4,13 @@
     "jsx": "react-native",
     "lib": ["ESNext"],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": ["react", "react-native", "react-native-svg"]
+    "types": ["react", "react-native"]
   },
   "include": ["src", "App.tsx", "app.config.ts"],
   "extends": "expo/tsconfig.base"

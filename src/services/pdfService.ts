@@ -1,20 +1,27 @@
-import * as FileSystem from "expo-file-system";
+import {
+  documentDirectory,
+  EncodingType,
+  getInfoAsync,
+  makeDirectoryAsync,
+  moveAsync,
+  readAsStringAsync,
+} from "expo-file-system";
 import * as Print from "expo-print";
 
 import { ImageItem } from "../store/imageStore";
 
-const OUTPUT_DIR = `${FileSystem.documentDirectory}pixadoc`;
+const OUTPUT_DIR = `${documentDirectory}pixadoc`;
 
 async function ensureDir() {
-  const dirInfo = await FileSystem.getInfoAsync(OUTPUT_DIR);
+  const dirInfo = await getInfoAsync(OUTPUT_DIR);
   if (!dirInfo.exists) {
-    await FileSystem.makeDirectoryAsync(OUTPUT_DIR, { intermediates: true });
+    await makeDirectoryAsync(OUTPUT_DIR, { intermediates: true });
   }
 }
 
 async function imageToBase64(uri: string) {
-  return FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
+  return readAsStringAsync(uri, {
+    encoding: EncodingType.Base64,
   });
 }
 
@@ -66,6 +73,6 @@ export async function generatePdf(images: ImageItem[]): Promise<string> {
   const fileName = `pixadoc-${Date.now()}.pdf`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   const dest = `${OUTPUT_DIR}/${fileName}`;
-  await FileSystem.moveAsync({ from: uri, to: dest });
+  await moveAsync({ from: uri, to: dest });
   return dest;
 }
